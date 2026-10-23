@@ -362,10 +362,20 @@
 <header class="nav">
   <div class="nav-inner">
     <a class="brand" href="/" aria-label="exoai">
-      <span class="mark">
-        <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path d="M48 6 C 42 2, 22 2, 16 8 C 11 13, 15 18, 25 18 C 33 18, 42 18, 42 22 C 42 26, 32 28, 22 26 C 16 25, 12 24, 10 22"
-                fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <span class="mark" aria-hidden="true">
+        <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="exoLogoGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%"  stop-color="#b4a7ff"/>
+              <stop offset="55%" stop-color="#8b9dff"/>
+              <stop offset="100%" stop-color="#5468ff"/>
+            </linearGradient>
+          </defs>
+          <ellipse cx="30" cy="15" rx="22" ry="10" fill="none"
+                   stroke="url(#exoLogoGrad)" stroke-width="4"/>
+          <circle  cx="30" cy="15" r="4.4" fill="url(#exoLogoGrad)"/>
+          <path d="M30 2 V5 M30 25 V28 M3 15 H6 M54 15 H57"
+                stroke="url(#exoLogoGrad)" stroke-width="2.4" stroke-linecap="round"/>
         </svg>
       </span>
     </a>
@@ -715,10 +725,13 @@
   <div class="wrap">
     <div class="foot-row">
       <div class="foot-brand">
-        <span class="mark">
-          <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <path d="M48 6 C 42 2, 22 2, 16 8 C 11 13, 15 18, 25 18 C 33 18, 42 18, 42 22 C 42 26, 32 28, 22 26 C 16 25, 12 24, 10 22"
-                  fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <span class="mark" aria-hidden="true">
+          <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg">
+            <ellipse cx="30" cy="15" rx="22" ry="10" fill="none"
+                     stroke="currentColor" stroke-width="4"/>
+            <circle  cx="30" cy="15" r="4.4" fill="currentColor"/>
+            <path d="M30 2 V5 M30 25 V28 M3 15 H6 M54 15 H57"
+                  stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/>
           </svg>
         </span>
         <span class="meta">&copy; 2026 exoai. All rights reserved.</span>

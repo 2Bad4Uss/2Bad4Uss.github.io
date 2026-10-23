@@ -287,6 +287,63 @@
     .nav-inner{gap:20px}
     .nav-links{display:none}
   }
+  /* ====== POLISH ANIMATIONS ============================================ */
+  @keyframes grad-shift { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes shine      { 0%{transform:translateX(-120%) skewX(-20deg)} 100%{transform:translateX(220%) skewX(-20deg)} }
+  @keyframes float-y    { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes pulse-glow { 0%,100%{box-shadow:0 0 0 1px rgba(255,255,255,.15),0 10px 30px -8px rgba(90,110,255,.6)}
+                          50%{box-shadow:0 0 0 1px rgba(255,255,255,.25),0 14px 44px -8px rgba(140,120,255,.85)} }
+  @keyframes fade-up    { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:none} }
+  @keyframes drift-dot  { from{transform:translateY(0) rotate(0)} to{transform:translateY(-100vh) rotate(360deg)} }
+
+  h1{
+    background:linear-gradient(90deg,#ffffff 0%,#c8c5ff 30%,#8d99ff 55%,#b4a7ff 80%,#ffffff 100%);
+    background-size:260% 100%;
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:grad-shift 9s ease-in-out infinite;
+  }
+  .btn.primary{position:relative;overflow:hidden;isolation:isolate}
+  .btn.primary::after{
+    content:"";position:absolute;top:-30%;bottom:-30%;left:0;width:40%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    transform:translateX(-120%) skewX(-20deg);
+    animation:shine 3.6s ease-in-out infinite;
+    pointer-events:none;z-index:2;
+  }
+  .btn.primary > *{position:relative;z-index:3}
+  .plan.featured{overflow:hidden;position:relative}
+  .plan.featured::after{
+    content:"";position:absolute;top:0;bottom:0;left:0;width:35%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.08),transparent);
+    transform:translateX(-120%) skewX(-20deg);
+    animation:shine 5.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+  .scope{animation:float-y 7s ease-in-out infinite}
+  .brand .mark{animation:pulse-glow 3.4s ease-in-out infinite}
+  .nav{transition:background .25s ease, backdrop-filter .25s ease}
+  .nav-row{transition:height .25s ease}
+  .nav.scrolled{background:rgba(5,6,10,.85)}
+  .nav.scrolled .nav-row{height:56px}
+  .game{transition:transform .25s ease, border-color .2s ease}
+  .game:hover{transform:translateY(-3px) rotate(-.4deg)}
+  .section-head.in-view h2,
+  .section-head.in-view p,
+  .section-head.in-view .eyebrow { animation:fade-up .55s ease both }
+  .section-head.in-view p { animation-delay:.08s }
+  .section-head.in-view h2 { animation-delay:.04s }
+  .trust b { display:inline-block;min-width:3ch;text-align:right }
+  .particles{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  .particles i{
+    position:absolute;bottom:-20px;width:4px;height:4px;border-radius:50%;
+    background:rgba(180,170,255,.5);
+    box-shadow:0 0 10px rgba(140,120,255,.6);
+    animation:drift-dot linear infinite;
+    opacity:.65;
+  }
+  .hero{position:relative;z-index:1}
+  .hero .wrap{position:relative;z-index:2}
+
   @media (max-width: 640px){
     .hero{padding:40px 0 60px}
     .section{padding:60px 0}
@@ -690,6 +747,68 @@
     });
   }, { rootMargin: '-40% 0px -55% 0px' });
   sections.forEach(s => s && io.observe(s));
+
+  // nav shrinks + darkens past a bit of scroll
+  const nav = document.querySelector('.nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 40);
+  window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+
+  // fade-up for section headings when they enter view
+  const headIo = new IntersectionObserver((es) => {
+    es.forEach(e => { if (e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold: .25 });
+  document.querySelectorAll('.section-head').forEach(h => headIo.observe(h));
+
+  // count-up on trust stats (first time they enter view)
+  const parseStat = (s) => {
+    const m = s.match(/([\d.,]+)/); if (!m) return null;
+    return parseFloat(m[1].replace(/,/g, ''));
+  };
+  const formatStat = (n, orig) => {
+    const hasComma = orig.includes(',');
+    const dec = (orig.split('.')[1] || '').replace(/[^\d]/g,'').length;
+    if (dec > 0) return n.toFixed(dec);
+    return hasComma ? Math.round(n).toLocaleString('en-US') : Math.round(n).toString();
+  };
+  const statIo = new IntersectionObserver((es) => {
+    es.forEach(e => {
+      if (!e.isIntersecting) return;
+      const el = e.target;
+      const orig = el.textContent.trim();
+      const target = parseStat(orig);
+      if (target === null) return;
+      statIo.unobserve(el);
+      const dur = 1200; const start = performance.now();
+      const tick = (t) => {
+        const p = Math.min(1, (t - start) / dur);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = orig.replace(/[\d.,]+/, formatStat(target * eased, orig));
+        if (p < 1) requestAnimationFrame(tick);
+        else el.textContent = orig;
+      };
+      requestAnimationFrame(tick);
+    });
+  }, { threshold: .4 });
+  document.querySelectorAll('.trust b').forEach(b => statIo.observe(b));
+
+  // drifting particles behind the hero
+  (() => {
+    const hero = document.querySelector('.hero');
+    if (!hero) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'particles';
+    for (let i = 0; i < 22; i++) {
+      const s = document.createElement('i');
+      s.style.left = Math.random() * 100 + '%';
+      s.style.animationDuration = (10 + Math.random() * 14) + 's';
+      s.style.animationDelay = -(Math.random() * 18) + 's';
+      const scale = 0.5 + Math.random() * 1.5;
+      s.style.transform = `scale(${scale})`;
+      s.style.opacity = (0.3 + Math.random() * 0.55).toFixed(2);
+      wrap.appendChild(s);
+    }
+    hero.insertBefore(wrap, hero.firstChild);
+  })();
 </script>
 
 </body>

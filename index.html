@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>exoai — AI object detection for real-time tracking</title>
+<meta name="description" content="exoai — AI object detection for real-time tracking, precise aim and instant prefire. Runs entirely outside your game files." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Permanent+Marker&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080d;
+    --bg-2:#0a0c14;
+    --panel:#0e1120;
+    --panel-2:#131626;
+    --card:#10131f;
+    --card-2:#161a2a;
+    --ink:#eef0ff;
+    --mute:#9ea4c2;
+    --dim:#5c6286;
+    --line:rgba(255,255,255,.07);
+    --line-2:rgba(255,255,255,.12);
+    --accent-a:#b9b4ff;
+    --accent-b:#7c82ff;
+    --accent-c:#5560d9;
+    --radius:22px;
+    --radius-sm:14px;
+    --radius-pill:999px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 85% -5%,rgba(120,130,255,.18),transparent 60%),
+      radial-gradient(800px 500px at 10% 5%,rgba(140,120,255,.12),transparent 60%),
+      var(--bg);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    font-size:15px;
+    line-height:1.55;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font:inherit;color:inherit;cursor:pointer}
+  .wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+
+  /* NAV — center floating pill */
+  .nav{position:sticky;top:16px;z-index:80;display:flex;justify-content:center;padding:0 16px}
+  .nav-inner{
+    display:flex;align-items:center;gap:48px;
+    padding:10px 14px;border-radius:var(--radius-pill);
+    background:rgba(14,16,28,.72);
+    border:1px solid var(--line-2);
+    backdrop-filter:blur(18px) saturate(140%);
+    -webkit-backdrop-filter:blur(18px) saturate(140%);
+    box-shadow:0 20px 40px -20px rgba(0,0,0,.6);
+  }
+  .brand{display:flex;align-items:center;gap:8px;padding:0 10px}
+  .brand .mark{
+    width:34px;height:16px;position:relative;color:#fff;
+  }
+  .brand .mark svg{display:block;width:100%;height:100%}
+  .nav-links{display:flex;gap:8px}
+  .nav-links a{
+    padding:8px 14px;border-radius:var(--radius-pill);
+    color:#c9cde6;font-weight:500;font-size:14.5px;
+    transition:color .15s, background .15s;
+  }
+  .nav-links a:hover{color:#fff;background:rgba(255,255,255,.05)}
+  .nav-links a.active{color:#fff;background:rgba(255,255,255,.04)}
+  .btn-login{
+    padding:9px 22px;border-radius:var(--radius-pill);
+    background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.04));
+    border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:600;font-size:14px;
+    transition:background .15s, transform .1s;
+  }
+  .btn-login:hover{background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,255,255,.08))}
+
+  /* generic buttons */
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:14px 30px;border-radius:var(--radius-pill);font-weight:600;font-size:15px;
+    border:1px solid var(--line-2);background:rgba(255,255,255,.04);color:#fff;
+    transition:transform .1s, background .15s, border-color .15s;cursor:pointer;
+  }
+  .btn:hover{background:rgba(255,255,255,.09);border-color:rgba(255,255,255,.22)}
+  .btn:active{transform:translateY(1px)}
+  .btn.primary{
+    background:
+      linear-gradient(100deg,#8a90ff 0%,#6b73ff 32%,#525dde 58%,#8b92ff 100%);
+    border:1px solid rgba(255,255,255,.22);
+    box-shadow:
+      0 14px 40px -12px rgba(100,110,255,.65),
+      inset 0 1px 0 rgba(255,255,255,.35),
+      inset 0 -8px 20px rgba(0,0,0,.25);
+    color:#fff;
+  }
+  .btn.primary:hover{filter:brightness(1.08)}
+
+  /* HERO */
+  .hero{position:relative;padding:70px 0 90px}
+  .hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:60px;align-items:center}
+
+  .hero-art{
+    position:relative;aspect-ratio:16/11;border-radius:var(--radius);overflow:hidden;
+    background:
+      radial-gradient(circle at 50% 50%,rgba(90,100,230,.18),transparent 60%),
+      linear-gradient(180deg,#0a0c17,#06070e);
+    border:1px solid rgba(255,255,255,.06);
+    box-shadow:
+      0 50px 100px -40px rgba(80,90,220,.5),
+      inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .hero-art::before{
+    content:"";position:absolute;inset:-40%;
+    background:
+      radial-gradient(circle at 30% 30%,rgba(120,130,255,.18),transparent 50%),
+      radial-gradient(circle at 70% 70%,rgba(80,70,180,.22),transparent 50%);
+    filter:blur(40px);
+  }
+  .graffiti{
+    position:absolute;top:12%;left:50%;transform:translateX(-50%);
+    font-family:'Permanent Marker',cursive;
+    font-size:clamp(44px,8vw,86px);
+    letter-spacing:.04em;
+    color:#fff;
+    text-shadow:
+      0 0 2px #fff,
+      0 0 8px rgba(180,170,255,.9),
+      0 0 24px rgba(120,120,255,.9),
+      0 0 60px rgba(80,80,220,.75),
+      0 0 120px rgba(80,80,220,.5);
+    -webkit-text-stroke:1px rgba(255,255,255,.6);
+    user-select:none;
+    pointer-events:none;
+    white-space:nowrap;
+  }
+  .graffiti::after{
+    content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
+    width:120%;height:40px;
+    background:radial-gradient(ellipse,rgba(120,120,255,.5),transparent 70%);
+    filter:blur(14px);
+  }
+  .mock{
+    position:absolute;left:12%;right:12%;bottom:8%;top:38%;
+    background:linear-gradient(180deg,#0d1020 0%,#0a0c18 100%);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:14px;
+    box-shadow:0 20px 60px -20px rgba(0,0,0,.6);
+    overflow:hidden;
+    display:grid;grid-template-columns:46px 1fr;
+  }
+  .mock-rail{
+    background:#0a0d17;border-right:1px solid rgba(255,255,255,.05);
+    display:flex;flex-direction:column;align-items:center;padding:10px 0;gap:14px;color:#5f6485;
+  }
+  .mock-rail .m-logo{
+    width:22px;height:22px;display:grid;place-items:center;color:#fff;
+    background:linear-gradient(180deg,#6b74ff,#4b56d8);border-radius:7px;
+    box-shadow:0 6px 14px -6px rgba(90,100,220,.8);
+  }
+  .mock-rail .ri{width:22px;height:22px;display:grid;place-items:center;border-radius:6px;color:#8085a8}
+  .mock-rail .ri.on{background:rgba(120,130,255,.14);color:#c9cde6}
+  .mock-body{padding:12px 14px;overflow:hidden;position:relative;color:#c7cbe4}
+  .mock-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:11px;letter-spacing:.18em;color:#8085a8;text-transform:uppercase;
+    padding-bottom:8px;border-bottom:1px dashed rgba(255,255,255,.06);
+  }
+  .mock-row{
+    display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:10px;
+    padding:8px 2px;border-bottom:1px solid rgba(255,255,255,.04);font-size:12px;
+  }
+  .mock-row:last-child{border-bottom:0}
+  .mock-row .lbl{color:#c7cbe4}
+  .slider{height:4px;background:rgba(255,255,255,.08);border-radius:999px;position:relative;width:160px;overflow:hidden}
+  .slider i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,#8b92ff,#5560d9);border-radius:999px}
+  .knob{width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 0 2px #4b56d8}
+  .slider-wrap{display:flex;align-items:center;gap:8px}
+  .num{font-size:11px;color:#9ea4c2;min-width:26px;text-align:right;font-variant-numeric:tabular-nums}
+  .toggle{width:30px;height:16px;background:rgba(255,255,255,.08);border-radius:999px;position:relative;transition:background .15s}
+  .toggle i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .15s}
+  .toggle.on{background:linear-gradient(90deg,#8b92ff,#5560d9)}
+  .toggle.on i{left:16px}
+  .pill-chip{font-size:10.5px;color:#9ea4c2;padding:3px 7px;border-radius:999px;background:rgba(255,255,255,.05)}
+  .pill-chip.red{color:#f8c6c6;background:rgba(240,120,120,.1)}
+  .pill-chip.off{color:#9ea4c2}
+
+  .hero-text{position:relative}
+  .hero-text h1{
+    font-family:'Inter';font-weight:300;
+    font-size:clamp(56px,8vw,96px);
+    line-height:.98;letter-spacing:-.03em;
+    margin:0 0 20px;color:#fff;
+  }
+  .hero-text p{
+    font-size:16px;color:#aab0cf;max-width:520px;margin:0 0 32px;
+  }
+  .hero-cta{display:flex;gap:12px;flex-wrap:wrap}
+
+  /* SECTION HEADS (slyced style, giant centered word with glow) */
+  .section{padding:80px 0;position:relative}
+  .section-title{
+    text-align:center;font-family:'Inter';font-weight:300;
+    font-size:clamp(44px,6vw,64px);letter-spacing:-.02em;color:#fff;
+    margin:0 0 56px;
+    text-shadow:0 2px 0 rgba(0,0,0,.3), 0 20px 60px rgba(90,100,220,.25);
+  }
+
+  /* PRICING */
+  .pricing{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .plan{
+    position:relative;padding:28px 26px;border-radius:var(--radius);
+    background:linear-gradient(180deg,#111422 0%,#0c0e18 100%);
+    border:1px solid var(--line);
+    display:flex;flex-direction:column;gap:22px;
+    overflow:hidden;transition:border-color .2s, transform .2s;
+  }
+  .plan:hover{border-color:var(--line-2);transform:translateY(-3px)}
+  .plan.featured{
+    background:
+      radial-gradient(500px 220px at 50% -40%,rgba(130,140,255,.4),transparent 65%),
+      linear-gradient(180deg,#141729 0%,#0d1020 100%);
+    border:1px solid rgba(140,150,255,.3);
+    box-shadow:0 40px 80px -30px rgba(90,100,220,.5);
+  }
+  .plan-tags{display:flex;gap:8px;flex-wrap:wrap}
+  .plan-tag{
+    padding:7px 14px;border-radius:999px;font-size:13px;font-weight:500;
+    background:rgba(255,255,255,.04);border:1px solid var(--line-2);color:#c9cde6;
+  }
+  .plan-tag.hot{
+    background:linear-gradient(100deg,#8a90ff,#6b73ff 50%,#525dde);
+    border:1px solid rgba(255,255,255,.22);color:#fff;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35);
+  }
+  .plan-tag.ghost{background:rgba(0,0,0,.5);border-color:rgba(255,255,255,.1);color:#c9cde6}
+  .plan .price{display:flex;align-items:baseline;gap:8px}
+  .plan .price .amt{font-size:38px;font-weight:300;letter-spacing:-.02em;color:#fff}
+  .plan .price .per{font-size:14px;color:#8085a8}
+  .plan .buy{width:100%;padding:14px}
+  .plan .inc{color:#c9cde6;font-size:14px;margin:-6px 0 0}
+  .plan ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+  .plan li{display:flex;align-items:center;gap:10px;font-size:14px;color:#d2d6ee}
+  .plan li svg{flex:0 0 auto;color:#aab0ff}
+
+  /* FEATURES */
+  .features{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .feat{
+    padding:22px;border-radius:18px;
+    background:linear-gradient(180deg,#111422 0%,#0b0d18 100%);
+    border:1px solid var(--line);
+    transition:border-color .2s, transform .2s;
+    display:flex;flex-direction:column;gap:12px;
+    min-height:170px;
+  }
+  .feat:hover{border-color:var(--line-2);transform:translateY(-2px)}
+  .feat .head{display:flex;align-items:center;gap:10px}
+  .feat .ico{
+    width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(180deg,rgba(140,150,255,.25),rgba(140,150,255,.05));
+    border:1px solid rgba(140,150,255,.3);color:#d7daff;
+  }
+  .feat .title{font-size:16px;font-weight:600;color:#fff;letter-spacing:-.005em}
+  .feat .desc{color:#8d93b5;font-size:13.5px;line-height:1.5}
+
+  /* FOOTER */
+  footer{padding:48px 0 36px;border-top:1px solid var(--line);margin-top:40px}
+  .foot-row{display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap}
+  .foot-brand{display:flex;align-items:center;gap:12px}
+  .foot-brand .mark{width:28px;height:14px;color:#fff}
+  .foot-brand .mark svg{display:block;width:100%;height:100%}
+  .foot-brand .meta{color:#8085a8;font-size:13px}
+  .foot-nav{display:flex;gap:28px}
+  .foot-nav a{color:#c9cde6;font-size:14px}
+  .foot-nav a:hover{color:#fff}
+  .foot-end{display:flex;gap:28px;color:#5c6286;font-size:12.5px;margin-top:20px;justify-content:flex-end}
+  .foot-end a:hover{color:#c9cde6}
+
+  /* RESPONSIVE */
+  @media (max-width: 1040px){
+    .hero-grid{grid-template-columns:1fr;gap:40px}
+    .pricing{grid-template-columns:repeat(2,1fr)}
+    .features{grid-template-columns:repeat(2,1fr)}
+    .nav-inner{gap:20px}
+    .nav-links{display:none}
+  }
+  @media (max-width: 640px){
+    .hero{padding:40px 0 60px}
+    .section{padding:60px 0}
+    .pricing{grid-template-columns:1fr}
+    .features{grid-template-columns:1fr}
+    .foot-row{flex-direction:column;align-items:flex-start}
+    .foot-end{justify-content:flex-start;flex-wrap:wrap;gap:16px}
+    .hero-text h1{font-size:64px}
+    .btn{padding:12px 22px}
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="/" aria-label="exoai">
+      <span class="mark">
+        <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M48 6 C 42 2, 22 2, 16 8 C 11 13, 15 18, 25 18 C 33 18, 42 18, 42 22 C 42 26, 32 28, 22 26 C 16 25, 12 24, 10 22"
+                fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </a>
+    <nav class="nav-links">
+      <a href="#top" class="active">Home</a>
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+    </nav>
+    <a class="btn-login" href="login.html">Login</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div class="hero-art" aria-hidden="true">
+        <div class="graffiti">EXOAI</div>
+        <div class="mock">
+          <aside class="mock-rail">
+            <div class="m-logo">
+              <svg width="12" height="12" viewBox="0 0 60 30" fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M48 6 C 42 2, 22 2, 16 8 C 11 13, 15 18, 25 18 C 33 18, 42 18, 42 22 C 42 26, 32 28, 22 26 C 16 25, 12 24, 10 22"/></svg>
+            </div>
+            <div class="ri on"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="2.5"/></svg></div>
+            <div class="ri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v10M7 12h10"/></svg></div>
+            <div class="ri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 10h8M8 14h5"/></svg></div>
+            <div class="ri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h12"/></svg></div>
+            <div class="ri"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 1-7 7m0-14a7 7 0 0 1 7 7"/></svg></div>
+          </aside>
+          <div class="mock-body">
+            <div class="mock-head"><span>AIMBOT</span><span>v4.2</span></div>
+            <div class="mock-row">
+              <span class="lbl">Enable Aimbot</span>
+              <span></span>
+              <span class="toggle on"><i></i></span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">Hitbox</span>
+              <span></span>
+              <span class="pill-chip">Neck</span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">FOV</span>
+              <span class="slider-wrap"><span class="slider"><i style="width:68%"></i></span></span>
+              <span class="num">100</span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">Strength</span>
+              <span class="slider-wrap"><span class="slider"><i style="width:28%"></i></span></span>
+              <span class="num">20</span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">Auto-Aim</span>
+              <span></span>
+              <span class="toggle"><i></i></span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">Aim Key 1</span>
+              <span></span>
+              <span class="pill-chip red">RMB</span>
+            </div>
+            <div class="mock-row">
+              <span class="lbl">Aim Key 2</span>
+              <span></span>
+              <span class="pill-chip off">OFF</span>
+            </div>
+            <div class="mock-head" style="margin-top:4px;border-bottom:0"><span>TRIGGERBOT</span><span></span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-text">
+        <h1>exoai</h1>
+        <p>AI object detection for real-time tracking, precise aim and instant prefire. Runs entirely outside your game files.</p>
+        <div class="hero-cta">
+          <a class="btn primary" href="#pricing">Purchase</a>
+          <a class="btn" href="#features">View Features</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section class="section" id="pricing">
+    <div class="wrap">
+      <h2 class="section-title">Pricing</h2>
+      <div class="pricing">
+
+        <div class="plan">
+          <div class="plan-tags"><span class="plan-tag">1 Week</span></div>
+          <div class="price"><span class="amt">€19,90</span><span class="per">/ week</span></div>
+          <button class="btn buy">Purchase Now</button>
+          <div class="inc">Includes:</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Well-trained AI models</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Native controller support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Your own private build</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Regular updates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Dedicated 24/7 support</li>
+          </ul>
+        </div>
+
+        <div class="plan">
+          <div class="plan-tags"><span class="plan-tag">1 Month</span></div>
+          <div class="price"><span class="amt">€29,90</span><span class="per">/ month</span></div>
+          <button class="btn buy">Purchase Now</button>
+          <div class="inc">Includes:</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Well-trained AI models</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Native controller support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Your own private build</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Regular updates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Dedicated 24/7 support</li>
+          </ul>
+        </div>
+
+        <div class="plan">
+          <div class="plan-tags"><span class="plan-tag">3 Months</span></div>
+          <div class="price"><span class="amt">€49,90</span><span class="per">/ 3 months</span></div>
+          <button class="btn buy">Purchase Now</button>
+          <div class="inc">Includes:</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Well-trained AI models</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Native controller support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Your own private build</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Regular updates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Dedicated 24/7 support</li>
+          </ul>
+        </div>
+
+        <div class="plan featured">
+          <div class="plan-tags">
+            <span class="plan-tag hot">Most Popular</span>
+            <span class="plan-tag ghost">Lifetime</span>
+          </div>
+          <div class="price"><span class="amt">€79,90</span><span class="per">one-time</span></div>
+          <button class="btn primary buy">Purchase Now</button>
+          <div class="inc">Includes:</div>
+          <ul>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Well-trained AI models</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Native controller support</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Your own private build</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Regular updates</li>
+            <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg>Dedicated 24/7 support</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="section" id="features">
+    <div class="wrap">
+      <h2 class="section-title">Features</h2>
+      <div class="features">
+
+        <!-- 01 Aimbot -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M22 12h-3M5 12H2"/></svg></span>
+            <span class="title">Aimbot / Aim Assist</span>
+          </div>
+          <p class="desc">Hitbox, custom aim height, FOV and strength with separate ADS values, auto aim and 2 keybinds</p>
+        </div>
+
+        <!-- 02 Triggerbot -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5M12 15.5v.5"/></svg></span>
+            <span class="title">Triggerbot</span>
+          </div>
+          <p class="desc">Normal and centerline modes, offset, first shot and trigger delays, confidence, auto fire and 1 keybind</p>
+        </div>
+
+        <!-- 03 Prefire -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg></span>
+            <span class="title">Prefire</span>
+          </div>
+          <p class="desc">Custom green and orange hex, on 1 keybind</p>
+        </div>
+
+        <!-- 04 RCS -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18l6-6-4-4 10-4-4 10-4-4-6 6z"/></svg></span>
+            <span class="title">RCS</span>
+          </div>
+          <p class="desc">Adjustable strength, auto RCS, custom recoil patterns and 1 keybind</p>
+        </div>
+
+        <!-- 05 Humanization -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c1.5-4 5-6 7-6s5.5 2 7 6"/></svg></span>
+            <span class="title">Humanization</span>
+          </div>
+          <p class="desc">Mimics natural mouse movement, with custom patterns of your own</p>
+        </div>
+
+        <!-- 06 Weapon Slots -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+            <span class="title">Weapon Slots</span>
+          </div>
+          <p class="desc">Five profiles, each with its own hitbox, FOV, strength, trigger and RCS settings</p>
+        </div>
+
+        <!-- 07 Visuals -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="title">Visuals</span>
+          </div>
+          <p class="desc">FOV, box, line, crosshair and info overlay in custom colors, with adjustable thickness and opacity</p>
+        </div>
+
+        <!-- 08 AI -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2.5 4.5L19 8l-3.5 3.5L17 17l-5-2.5L7 17l1.5-5.5L5 8l4.5-1.5L12 2z"/></svg></span>
+            <span class="title">AI</span>
+          </div>
+          <p class="desc">Well-trained models with object filtering, plus adjustable confidence and NMS</p>
+        </div>
+
+        <!-- 09 Configs -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/></svg></span>
+            <span class="title">Configs</span>
+          </div>
+          <p class="desc">Create, save, load and delete</p>
+        </div>
+
+        <!-- 10 Setup -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 20h8M12 17v3"/></svg></span>
+            <span class="title">Setup</span>
+          </div>
+          <p class="desc">Runs 1PC, 2PC or console</p>
+        </div>
+
+        <!-- 11 Screen Capture -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a1 1 0 0 1 1-1h2M20 7V5a1 1 0 0 0-1-1h-2M4 17v2a1 1 0 0 0 1 1h2M20 17v2a1 1 0 0 1-1 1h-2"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="title">Screen Capture</span>
+          </div>
+          <p class="desc">GDI, DXGI, UDP or capture card</p>
+        </div>
+
+        <!-- 12 GPU Runtime -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M7 10v4M11 10v4M15 10v4"/></svg></span>
+            <span class="title">GPU Runtime</span>
+          </div>
+          <p class="desc">DML, TRT FP16 or TRT FP32</p>
+        </div>
+
+        <!-- 13 Controller -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="11" rx="4"/><path d="M8 12h2M9 11v2M15 11.5h.01M17 13h.01"/></svg></span>
+            <span class="title">Controller</span>
+          </div>
+          <p class="desc">Native controller support</p>
+        </div>
+
+        <!-- 14 Hardware (optional) -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4M12 18v4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M2 12h4M18 12h4M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg></span>
+            <span class="title">Hardware (optional)</span>
+          </div>
+          <p class="desc">KMBox NET, KMBox B+, Ferrum, Makcu, Arduino and RP2040</p>
+        </div>
+
+        <!-- 15 Performance -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20a8 8 0 1 1 8-8"/><path d="M12 12l5-3"/></svg></span>
+            <span class="title">Performance</span>
+          </div>
+          <p class="desc">100+ FPS, even on a GTX 1650</p>
+        </div>
+
+        <!-- 16 Compatibility -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg></span>
+            <span class="title">Compatibility</span>
+          </div>
+          <p class="desc">Runs on Windows 10 and 11, on any GPU</p>
+        </div>
+
+        <!-- 17 Security -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg></span>
+            <span class="title">Security</span>
+          </div>
+          <p class="desc">Private builds, unique per user</p>
+        </div>
+
+        <!-- 18 Interface -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 14h4"/></svg></span>
+            <span class="title">Interface</span>
+          </div>
+          <p class="desc">Clean setup with full customization</p>
+        </div>
+
+        <!-- 19 Support -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H9l-5 4V5z"/></svg></span>
+            <span class="title">Support</span>
+          </div>
+          <p class="desc">Dedicated 24/7 assistance</p>
+        </div>
+
+        <!-- 20 Updates -->
+        <div class="feat">
+          <div class="head">
+            <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></span>
+            <span class="title">Updates</span>
+          </div>
+          <p class="desc">Regular model and feature updates</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-row">
+      <div class="foot-brand">
+        <span class="mark">
+          <svg viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M48 6 C 42 2, 22 2, 16 8 C 11 13, 15 18, 25 18 C 33 18, 42 18, 42 22 C 42 26, 32 28, 22 26 C 16 25, 12 24, 10 22"
+                  fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+        <span class="meta">&copy; 2026 exoai. All rights reserved.</span>
+      </div>
+      <nav class="foot-nav">
+        <a href="#discord">Discord</a>
+        <a href="#contact">Contact Us</a>
+      </nav>
+    </div>
+    <div class="foot-end">
+      <a href="#terms">Terms Of Service</a>
+      <a href="#privacy">Privacy Policy</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // keep nav active section in sync
+  const links = document.querySelectorAll('.nav-links a');
+  const sections = ['top','features','pricing'].map(id => document.getElementById(id));
+  const io = new IntersectionObserver((es) => {
+    es.forEach(e => {
+      if (e.isIntersecting){
+        links.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#'+e.target.id));
+      }
+    });
+  }, { rootMargin: '-40% 0px -55% 0px' });
+  sections.forEach(s => s && io.observe(s));
+</script>
+
+</body>
+</html>
